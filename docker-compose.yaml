@@ -1,0 +1,50 @@
+services:
+  ai-app:
+    build: .
+    volumes:
+      - ./:/app
+    ports:
+      - "8501:8501"
+    environment:
+      # LLM config
+      - BASE_URL
+      - MODEL_NAME
+      - LOCAL_MCP_HOST=http://gateway-ddg:9011/mcp
+      - REMOTE_MCP_HOST=http://gateway-hf:8080/mcp
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/health"]
+    depends_on:
+      - llm
+      - gateway-hf
+      - gateway-ddg
+
+  llm:
+    provider:
+      type: model
+      options:
+        model: ai/qwen2.5
+
+  # ----------------- Hugging Face gateway (remote MCP) -----------------
+  gateway-hf:
+    image: docker/mcp-gateway
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./catalog.yaml:/catalog.yaml            # your HF config that already works
+    command:
+      - --transport=streaming
+      - --catalog=/catalog.yaml
+      - --servers=huggingface
+      - --port=8080
+
+  # ----------------- DuckDuckGo gateway (local MCP) --------------------
+  gateway-ddg:
+    image: docker/mcp-gateway
+    command:
+      - --transport=streaming
+      - --servers=duckduckgo
+      - --port=9011
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

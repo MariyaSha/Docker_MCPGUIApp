@@ -1,0 +1,5 @@
+registry:
+  huggingface:
+    remote:
+      url: "https://huggingface.co/mcp"
+      transport_type: http
