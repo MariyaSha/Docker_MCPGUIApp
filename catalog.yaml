@@ -1,5 +1,11 @@
+# Add remote servers as a separate services
 registry:
   huggingface:
     remote:
       url: "https://huggingface.co/mcp"
       transport_type: http
+  stripe-remote:
+    remote:
+      url: "https://mcp.stripe.com⁠"
+      transport_type: http
+
