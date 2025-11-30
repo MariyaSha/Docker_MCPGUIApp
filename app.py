@@ -5,143 +5,136 @@ from langchain_openai import ChatOpenAI
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
-##############################
+###############################################
 # LLM & MCP SETTINGS
-##############################
-
+###############################################
+# Environment variable names from .env
 BASE_URL = os.environ.get("BASE_URL")
 MODEL_NAME = os.environ.get("MODEL_NAME")
 LOCAL_MCP_HOST = os.environ.get("LOCAL_MCP_HOST")
 REMOTE_MCP_HOST = os.environ.get("REMOTE_MCP_HOST")
 
+# Initialize LLM via Docker Model Runner
 llm = ChatOpenAI(
     model=MODEL_NAME,
     api_key="nope",
     base_url=BASE_URL,
 )
 
-##############################
-# REMOTE MCP
-##############################
-
+###############################################
+# REMOTE MCP (PAPER SEARCH ON HUGGING FACE)
+###############################################
 async def search_paper(query):
-    """Call the Hugging Face MCP `paper_search` tool via its own gateway."""
+    try:
+        async with streamablehttp_client(REMOTE_MCP_HOST) as (r, w, _):
+            async with ClientSession(r, w) as session:
+                await session.initialize()
+                result = await session.call_tool("paper_search", {"query": query})
 
-    async with streamablehttp_client(REMOTE_MCP_HOST) as (read_stream, write_stream, _):
-        async with ClientSession(read_stream, write_stream) as session:
-            await session.initialize()
-            result = await session.call_tool("paper_search", {"query": query})
-            block = result.content[0]
-            text = getattr(block, "text", None) or "[MCP] paper_search returned no text."
-            return text
+                if not result.content:
+                    return "[MCP] paper_search returned no content."
 
-def run_search_paper(query):
-    return asyncio.run(search_paper(query))
+                return getattr(
+                    result.content[0],
+                    "text",
+                    "[MCP] paper_search returned no text."
+                )
 
-##############################
-# SEARCH TOPIC EXTRACTION
-##############################
-
-def get_search_topic(prompt, mode="paper"):
-    """
-    Extract X from:
-        - "... search X on hugging face ..."
-        - "... search X on the web ..."
-    depending on mode.
-    """
-
-    lower = prompt.lower()
-
-    if mode == "paper":
-        end_key_options = ["on hugging face", "on hf", "on the hugging face"]
-    elif mode == "web":
-        end_key_options = ["on the web", "on web", "on internet"]
-    else:
-        return None
-
-    start_key = "search"
-
-    i_start = lower.find(start_key)
-    if i_start == -1:
-        return None
-
-    i_end = None
-    for ek in end_key_options:
-        pos = lower.find(ek)
-        if pos != -1:
-            i_end = pos
-            break
-
-    if i_end is None or i_end <= i_start:
-        return None
-
-    start_idx = i_start + len(start_key)
-    topic = prompt[start_idx:i_end]
-    topic = topic.strip(" :,-\n\t")
-    return topic or None
-
-##############################
-# LOCAL MCP (WEB SEARCH)
-##############################
+    except Exception as e:
+        return f"[MCP] paper_search failed: {e!r}"
+    
+###############################################
+# LOCAL MCP (WEB SEARCH ON DUCKDUCKGO)
+###############################################
 async def web_search(query):
     try:
-        async with streamablehttp_client(LOCAL_MCP_HOST) as (read_stream, write_stream, _):
-            async with ClientSession(read_stream, write_stream) as session:
+        async with streamablehttp_client(LOCAL_MCP_HOST) as (r, w, _):
+            async with ClientSession(r, w) as session:
                 await session.initialize()
                 result = await session.call_tool("search", {"query": query})
+
+                if not result.content:
+                    return "[MCP] DuckDuckGo search returned no content."
+
                 block = result.content[0]
-                text = getattr(block, "text", None)
-                return text or "[MCP] DuckDuckGo search returned non-text content."
+                return getattr(block, "text", "[MCP] DuckDuckGo search returned non-text content.")
 
     except Exception as e:
         return f"[MCP] DuckDuckGo search failed: {e!r}"
 
-def run_web_search(query):
-    return asyncio.run(web_search(query))
+###############################################
+# EXTRACT SEARCH TOPIC FROM PROMPT
+###############################################
+def get_search_topic(prompt, mode):
+    """"Detect "search X on Y" and extract X"""
+    p = prompt.lower()
 
-##############################
-# GUI
-##############################
+    patterns = {
+        "paper": ["on hugging face", "on hf", "on the hugging face"],
+        "web":   ["on the web", "on web", "on internet"],
+    }
 
+    # search for "search" in prompt
+    # fetch index of the first character: "s"
+    i_start = p.find("search")
+
+    if i_start == -1:
+        # "search" is not in prompt
+        return None
+    
+    # fetch index of the last character: "h"
+    i_start += len("search")
+
+    # search for end keywords based on mode
+    for end_key in patterns[mode]:
+        i_end = p.find(end_key)
+        if i_end > i_start:
+            # ecxtract topic between "search" and the end keywords
+            return prompt[i_start:i_end] or None
+
+    return None
+
+###############################################
+# GUI APPLICATION
+###############################################
 st.title("Talk to me...")
 st.text("search X on the web | search X on hugging face")
 
-think_harder = st.checkbox("Think harder...", value=False)
-
+# start collecting messages
 st.session_state.setdefault("messages", [])
 
-# Show chat history
+# Display chat history
 for msg in st.session_state["messages"]:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
 
+# Collect user input
 prompt = st.chat_input("type your message...")
 
 if prompt:
+    # Store and Display user message
     st.session_state["messages"].append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.write(prompt)
 
-    # Use only the last few messages as context
-    history_window = 6
-    history = st.session_state["messages"][-history_window:]
+    # Use only the last few messages as context (optional)
+    history = st.session_state["messages"][-10:]
 
+    # Convert messages to a single string
     context = ""
     for msg in history:
         context += f"{msg['role']}: {msg['content']}\n"
 
-    ##############################
-    # PAPER SEARCH
-    ##############################
+    ################## Peper Search ##################
     paper_topic = get_search_topic(prompt, mode="paper")
     research_text = ""
 
     if paper_topic:
-        research_text = run_search_paper(paper_topic)
+        research_text = asyncio.run(search_paper(paper_topic))
 
-        # truncation of text over 10000 characters
-        if len(research_text) > 10000:
-            research_text = research_text[:10000] + "\n...[truncated]"
+        # truncation of text over 8000 characters
+        if len(research_text) > 8000:
+            research_text = research_text[:8000] + "\n...[truncated]"
 
         context += (
             "assistant: Here are research papers from Hugging Face relevant to "
@@ -150,14 +143,12 @@ if prompt:
             "assistant: Based on the above research, answer the user's last question.\n"
         )
 
-    ##############################
-    # WEB SEARCH
-    ##############################
+    ################## Web Search ##################
     web_topic = get_search_topic(prompt, mode="web")
     web_text = ""
 
     if web_topic:
-        web_text = run_web_search(web_topic)
+        web_text = asyncio.run(web_search(web_topic))
 
         context += (
             f"\nassistant: Here is a DuckDuckGo web search result "
@@ -165,9 +156,7 @@ if prompt:
             f"{web_text}\n\n"
         )
 
-    ##############################
-    # LLM RESPONSE
-    ##############################
+    ################## LLM Response ##################
     response = llm.invoke(context)
     final_text = response.content
 
