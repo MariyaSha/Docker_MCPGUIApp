@@ -1,0 +1,13 @@
+registry:
+  huggingface:
+    remote:
+      url: "https://huggingface.co/mcp"
+      transport_type: http
+      # Hugging Face authentication is optional!
+  stripe-remote:
+    remote:
+      url: "https://mcp.stripe.com"
+      transport_type: http
+      headers: 
+        Authorization: "Bearer <Stripe secret key goes here>"
+      

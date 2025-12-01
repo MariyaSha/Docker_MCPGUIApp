@@ -1,0 +1,26 @@
+services:
+  ai-app:
+    build: .
+    volumes:
+      - ./:/app
+  gateway-local:
+    image: docker/mcp-gateway
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - --transport=streaming
+      - --servers=duckduckgo
+      - --servers=stripe
+      - --secrets=docker-desktop
+      - --port=9011
+  gateway-remote:
+    image: docker/mcp-gateway
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./catalog.yaml:/catalog.yaml  
+    command:
+      - --catalog=/catalog.yaml
+      - --transport=streaming
+      - --servers=huggingface
+      - --servers=stripe-remote
+      - --port=8080
