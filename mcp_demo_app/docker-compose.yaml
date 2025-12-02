@@ -3,24 +3,32 @@ services:
     build: .
     volumes:
       - ./:/app
+  # Communicate with Local Docker MCP Servers
   gateway-local:
     image: docker/mcp-gateway
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command:
       - --transport=streaming
+      - --port=9011
+      # Names of local servers to connect to
       - --servers=duckduckgo
       - --servers=stripe
+      # Authenticate with Docker Desktop
       - --secrets=docker-desktop
-      - --port=9011
+
+  # Communicate with Remote Docker MCP Servers
   gateway-remote:
     image: docker/mcp-gateway
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      # copy my custom catalog file into the container
       - ./catalog.yaml:/catalog.yaml  
     command:
-      - --catalog=/catalog.yaml
       - --transport=streaming
+      - --port=8080
+      # Names of remote servers to connect to
       - --servers=huggingface
       - --servers=stripe-remote
-      - --port=8080
+      # Names must map to URLs in catalog.yaml
+      - --catalog=/catalog.yaml
