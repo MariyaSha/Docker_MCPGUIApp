@@ -90,9 +90,30 @@ def get_search_topic(prompt, mode):
         i_end = p.find(end_key)
         if i_end > i_start:
             # ecxtract topic between "search" and the end keywords
-            return prompt[i_start:i_end] or None
+            return prompt[i_start:i_end].strip() or None  # <- strip spaces
 
     return None
+
+def is_mcp_search_required(context, prompt, mode):
+    topic = get_search_topic(prompt, mode)
+    text = ""
+
+    if topic:
+        # run MCP search
+        text = asyncio.run(mcp_search(mode, topic))
+
+        # truncate if needed
+        if len(text) > 8000:
+            text = text[:8000] + "\n...[truncated]"
+
+        # use context message
+        context += (
+            "assistant: Here are results from a search tool "
+            f"for the topic '{topic}':\n\n"
+            f"{text}\n\n"
+        )
+
+    return context, topic, text
 
 ###############################################
 # GUI APPLICATION
@@ -125,35 +146,17 @@ if prompt:
     for msg in history:
         context += f"{msg['role']}: {msg['content']}\n"
 
-    ################## Peper Search ##################
-    paper_topic = get_search_topic(prompt, mode="paper")
-    research_text = ""
+    ################## Unified Paper Search ##################
+    context, paper_topic, research_text = is_mcp_search_required(context, prompt, "paper")
 
-    if paper_topic:
-        research_text = asyncio.run(mcp_search("paper", paper_topic))
+    ################## Unified Web Search ##################
+    context, web_topic, web_text = is_mcp_search_required(context, prompt, "web")
 
-        # truncation of text over 8000 characters
-        if len(research_text) > 8000:
-            research_text = research_text[:8000] + "\n...[truncated]"
-
+    # If we ran at least one search, add a single follow-up instruction
+    if paper_topic or web_topic:
         context += (
-            "assistant: Here are research papers from Hugging Face relevant to "
-            f"the topic '{paper_topic}':\n\n"
-            f"{research_text}\n\n"
-            "assistant: Based on the above research, answer the user's last question.\n"
-        )
-
-    ################## Web Search ##################
-    web_topic = get_search_topic(prompt, mode="web")
-    web_text = ""
-
-    if web_topic:
-        web_text = asyncio.run(mcp_search("web", web_topic))
-
-        context += (
-            f"\nassistant: Here is a DuckDuckGo web search result "
-            f"for the topic '{web_topic}':\n\n"
-            f"{web_text}\n\n"
+            "assistant: Based on the search results above, "
+            "answer the user's latest request in a helpful way.\n"
         )
 
     ################## LLM Response ##################
