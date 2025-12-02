@@ -22,45 +22,50 @@ llm = ChatOpenAI(
 )
 
 ###############################################
-# REMOTE MCP (PAPER SEARCH ON HUGGING FACE)
+# SHARED MCP CALL HELPER
 ###############################################
-async def search_paper(query):
-    try:
-        async with streamablehttp_client(REMOTE_MCP_HOST) as (r, w, _):
-            async with ClientSession(r, w) as session:
-                await session.initialize()
-                result = await session.call_tool("paper_search", {"query": query})
+async def call_mcp(host, tool, args):
+    """
+    Call a tool from Docker MCP Gateways.
+    - host: REMOTE_MCP_HOST or LOCAL_MCP_HOST
+    - tool: string of tool name
+    - args: dict of tool arguments or {}
+    """
+    async with streamablehttp_client(host) as (r, w, _):
+        async with ClientSession(r, w) as session:
+            await session.initialize()
+            result = await session.call_tool(tool, args)
+            return result
 
-                if not result.content:
-                    return "[MCP] paper_search returned no content."
+###############################################
+# GENERIC MCP SEARCH (PAPER OR WEB)
+###############################################
+async def mcp_search(mode, query):
+    """
+    Search Term on Different Mediums via MCP.
+    mode:
+      - "paper": Hugging Face paper_search for REMOTE_MCP_HOST
+      - "web": DuckDuckGo search for LOCAL_MCP_HOST
+    """
+    if mode == "paper":
+        host = REMOTE_MCP_HOST
+        tool = "paper_search"
 
-                return getattr(
-                    result.content[0],
-                    "text",
-                    "[MCP] paper_search returned no text."
-                )
-
-    except Exception as e:
-        return f"[MCP] paper_search failed: {e!r}"
+    elif mode == "web":
+        host = LOCAL_MCP_HOST
+        tool = "search"
     
-###############################################
-# LOCAL MCP (WEB SEARCH ON DUCKDUCKGO)
-###############################################
-async def web_search(query):
-    try:
-        async with streamablehttp_client(LOCAL_MCP_HOST) as (r, w, _):
-            async with ClientSession(r, w) as session:
-                await session.initialize()
-                result = await session.call_tool("search", {"query": query})
+    result = await call_mcp(host, tool, {"query": query})
 
-                if not result.content:
-                    return "[MCP] DuckDuckGo search returned no content."
+    if not result.content:
+        return f"[MCP] returned no content."
 
-                block = result.content[0]
-                return getattr(block, "text", "[MCP] DuckDuckGo search returned non-text content.")
-
-    except Exception as e:
-        return f"[MCP] DuckDuckGo search failed: {e!r}"
+    c = result.content[0]
+    return getattr(
+        c,
+        "text",
+        f"[MCP] returned non-text content."
+    )
 
 ###############################################
 # EXTRACT SEARCH TOPIC FROM PROMPT
@@ -130,7 +135,7 @@ if prompt:
     research_text = ""
 
     if paper_topic:
-        research_text = asyncio.run(search_paper(paper_topic))
+        research_text = asyncio.run(mcp_search("paper", paper_topic))
 
         # truncation of text over 8000 characters
         if len(research_text) > 8000:
@@ -148,7 +153,7 @@ if prompt:
     web_text = ""
 
     if web_topic:
-        web_text = asyncio.run(web_search(web_topic))
+        web_text = asyncio.run(mcp_search("web", web_topic))
 
         context += (
             f"\nassistant: Here is a DuckDuckGo web search result "

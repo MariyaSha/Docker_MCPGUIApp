@@ -46,4 +46,3 @@ services:
       - --port=9011
       # Add local servers below
       - --servers=duckduckgo
-      - --servers=playwright
