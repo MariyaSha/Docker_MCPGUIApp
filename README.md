@@ -1,0 +1,3 @@
+# Public Template for Docker MCP LLM GUI Application
+
+coming soon...
