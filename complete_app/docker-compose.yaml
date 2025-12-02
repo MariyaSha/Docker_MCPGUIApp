@@ -7,6 +7,7 @@ services:
     ports:
       - "8501:8501"
     environment:
+    # fetch environment variables from .env
       - BASE_URL
       - MODEL_NAME
       - LOCAL_MCP_HOST
@@ -16,27 +17,17 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8501/health"]
     depends_on:
+      # Ensure the following services start before ai-app
       - llm
       - gateway-remote
       - gateway-local
-  # Large Language Model via Docker Model Runner
+  # Communicate with Large Language Model via Docker Model Runner
   llm:
     provider:
       type: model
       options:
         model: ai/qwen2.5
-  # Remote Servers Gateway on Port 8080
-  gateway-remote:
-    image: docker/mcp-gateway
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./catalog.yaml:/catalog.yaml  
-    command:
-      - --catalog=/catalog.yaml
-      - --transport=streaming
-      - --servers=huggingface
-      - --port=8080
-  # Local Servers Gateway on Port 9011
+  # Communicate with Local Docker MCP Servers
   gateway-local:
     image: docker/mcp-gateway
     volumes:
@@ -44,5 +35,19 @@ services:
     command:
       - --transport=streaming
       - --port=9011
-      # Add local servers below
+      # Names of local servers to connect to
       - --servers=duckduckgo
+  # Communicate with Remote Docker MCP Servers
+  gateway-remote:
+    image: docker/mcp-gateway
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # copy my custom catalog file into the container
+      - ./catalog.yaml:/catalog.yaml  
+    command:
+      - --transport=streaming
+      - --port=8080
+      # Names of remote servers to connect to
+      - --servers=huggingface
+      # Names must map to URLs in catalog.yaml
+      - --catalog=/catalog.yaml
