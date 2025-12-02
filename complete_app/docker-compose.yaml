@@ -1,10 +1,11 @@
 services:
-  # GUI Application on Port 8501
+  # Streamlit GUI aplication 
   ai-app:
     build: .
     volumes:
       - ./:/app
     ports:
+      # GUI app accessible in the browser: localhost:8501
       - "8501:8501"
     environment:
     # fetch environment variables from .env
@@ -15,6 +16,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
+      # verify Streamlit app is running with /health endpoint
       test: ["CMD", "curl", "-f", "http://localhost:8501/health"]
     depends_on:
       # Ensure the following services start before ai-app
