@@ -41,6 +41,9 @@ services:
       - --servers=duckduckgo
   # Communicate with Remote Docker MCP Servers
   gateway-remote:
+    environment:
+    - STRIPE_SECRETS
+    # - HF_SECRETS
     image: docker/mcp-gateway
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

@@ -12,5 +12,5 @@ registry:
       url: "https://mcp.stripe.com"
       transport_type: http
       headers: 
-        Authorization: "Bearer <Stripe secret key goes here>"
+        Authorization: "Bearer {{STRIPE_SECRETS}}"
 
