@@ -178,12 +178,12 @@ if prompt:
     with st.chat_message("assistant"):
         st.write(final_text)
 
+    # Display Expanding Search Results
         if paper_topic and research_text:
             with st.expander(
                 f"📚 Research Sources (Hugging Face `paper_search` on '{paper_topic}')"
             ):
                 st.write(research_text)
-
         if web_topic and web_text:
             with st.expander(
                 f"🔎 Web Search Results (DuckDuckGo `search` on '{web_topic}')"
