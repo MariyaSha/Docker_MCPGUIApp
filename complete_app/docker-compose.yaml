@@ -28,7 +28,7 @@ services:
     provider:
       type: model
       options:
-        model: ai/qwen2.5
+        model: ${MODEL_NAME}
   # Communicate with Local Docker MCP Servers
   gateway-local:
     image: docker/mcp-gateway
