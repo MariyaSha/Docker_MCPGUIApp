@@ -6,6 +6,8 @@ registry:
       transport_type: http
   stripe-remote:
     remote:
-      url: "https://mcp.stripe.com⁠"
+      url: "https://mcp.stripe.com"
       transport_type: http
+      headers: 
+        Authorization: "Bearer <Stripe secret key goes here>"
 
