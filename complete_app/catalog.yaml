@@ -4,6 +4,9 @@ registry:
     remote:
       url: "https://huggingface.co/mcp"
       transport_type: http
+      # Hugging Face authentication is optional!
+      # headers: 
+      #   Authorization: "Bearer <HuggingFace API key goes here>"
   stripe-remote:
     remote:
       url: "https://mcp.stripe.com"
