@@ -31,9 +31,11 @@ async def call_mcp(host, tool, args):
     - tool: string of tool name
     - args: dict of tool arguments or {}
     """
+    # connect to different MCP Gateways
     async with streamablehttp_client(host) as (r, w, _):
         async with ClientSession(r, w) as session:
             await session.initialize()
+            # call different tools with optional arguments
             result = await session.call_tool(tool, args)
             return result
 
@@ -47,22 +49,15 @@ async def mcp_search(mode, query):
       - "paper": Hugging Face paper_search for REMOTE_MCP_HOST
       - "web": DuckDuckGo search for LOCAL_MCP_HOST
     """
-    if mode == "paper":
-        host = REMOTE_MCP_HOST
-        tool = "paper_search"
+    if mode == "paper": 
+        # using hugging face server
+        result = await call_mcp(REMOTE_MCP_HOST, "paper_search", {"query": query}) 
 
-    elif mode == "web":
-        host = LOCAL_MCP_HOST
-        tool = "search"
-    
-    result = await call_mcp(host, tool, {"query": query})
-
-    if not result.content:
-        return f"[MCP] returned no content."
-
-    c = result.content[0]
+    elif mode == "web": 
+        # using duckduckgo server
+        result = await call_mcp(LOCAL_MCP_HOST, "search", {"query": query})
     return getattr(
-        c,
+        result.content[0],
         "text",
         f"[MCP] returned non-text content."
     )
