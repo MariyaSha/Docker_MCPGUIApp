@@ -97,7 +97,13 @@ def get_search_topic(prompt, mode):
     return None
 
 def is_mcp_search_required(context, prompt, mode):
-    """Determine if MCP search is needed and run it."""
+    """
+    Determine if MCP search is needed and run it.
+    - context: current chat history string
+    - prompt: latest user input string
+    - mode: "paper" for hugging face paper search
+            "web" for duck duck go web search
+    """
     topic = get_search_topic(prompt, mode)
     text = ""
 
