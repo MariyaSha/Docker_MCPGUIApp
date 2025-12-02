@@ -72,11 +72,12 @@ def get_search_topic(prompt, mode):
     - mode: "paper" for hugging face paper search
             "web" for duck duck go web search
     """
+    # check for "search" keyword in user prompt
     p = prompt.lower()
     i_start = p.find("search")
 
     if i_start == -1:
-        # "search" is not in prompt
+        # "search" keyword is not in prompt
         return None
 
     patterns = {
@@ -178,7 +179,7 @@ if prompt:
     with st.chat_message("assistant"):
         st.write(final_text)
 
-    # Display Expanding Search Results
+        # Display Expanding Search Results
         if paper_topic and research_text:
             with st.expander(
                 f"📚 Research Sources (Hugging Face `paper_search` on '{paper_topic}')"
