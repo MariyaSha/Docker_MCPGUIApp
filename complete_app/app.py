@@ -66,21 +66,23 @@ async def mcp_search(mode, query):
 # EXTRACT SEARCH TOPIC FROM PROMPT
 ###############################################
 def get_search_topic(prompt, mode):
-    """"Detect "search X on Y" and extract X"""
+    """"
+    Detect pattern "search X on Y" and extract X
+    - prompt: user input string
+    - mode: "paper" for hugging face paper search
+            "web" for duck duck go web search
+    """
     p = prompt.lower()
-
-    patterns = {
-        "paper": ["on hugging face", "on hf", "on the hugging face"],
-        "web":   ["on the web", "on web", "on internet"],
-    }
-
-    # search for "search" in prompt
-    # fetch index of the first character: "s"
     i_start = p.find("search")
 
     if i_start == -1:
         # "search" is not in prompt
         return None
+
+    patterns = {
+        "paper": ["on hugging face", "on hf", "on the hugging face"],
+        "web":   ["on the web", "on web", "on internet"],
+    }
     
     # fetch index of the last character: "h"
     i_start += len("search")
@@ -95,6 +97,7 @@ def get_search_topic(prompt, mode):
     return None
 
 def is_mcp_search_required(context, prompt, mode):
+    """Determine if MCP search is needed and run it."""
     topic = get_search_topic(prompt, mode)
     text = ""
 
