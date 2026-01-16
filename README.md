@@ -1,6 +1,14 @@
 # Public Template for Docker MCP LLM GUI Application
 
-This repository contains the **full demo application** from my <a href="https://youtu.be/DO3wPYJKpxk">Docker MCP YouTube Tutorial</a> — combining **Docker MCP Catalog**, **remote & local MCP servers**, and a **full-stack LLM web app** using **Docker Model Runner**.
+This repository contains both **demo applications** from my recent <a href="https://youtu.be/DO3wPYJKpxk">Docker MCP YouTube Tutorial</a> — combining **Docker MCP Catalog**, **remote & local MCP servers**, and a **full-stack LLM web app** using **Docker Model Runner**.
+
+This is a further development of my Full Stack LLM Project from: https://github.com/MariyaSha/simple_AI_assistant
+
+## 🎥 Video Tutorial
+
+To setup and run this application step by step, please watch my YouTube tutorial below. It will explain all the app processes, and the logic behind them.
+
+<a href="https://youtu.be/DO3wPYJKpxk" target="_blank"><img width="600" alt="Docker MCP Catalog thumbnail" src="https://github.com/user-attachments/assets/a419f9d1-0fc9-473a-8efe-b78dfdb462a6" /></a>
 
 It demonstrates how to:
 - embed MCP tools into your own **Python application**,
@@ -110,3 +118,4 @@ Feel free to fork, extend, and reuse this project.
 ## 🧑‍💻 License
 
 MIT License
+
