@@ -17,8 +17,6 @@ This video demonstrates how to:
 
 If you watched the video, this is the codebase used in the workflow.
 
----
-
 ## 🧠 What This App Does
 
 - Uses the **Docker MCP Gateway** to unify access to both **local** and **remote MCP servers**.
@@ -28,16 +26,12 @@ If you watched the video, this is the codebase used in the workflow.
 
 This app serves as a **starter template** for building professional AI assistants with real tools.
 
----
-
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Docker Desktop (with MCP Toolkit & Catalog)
 - Python 3.12+
 - (Optional) Stripe account for remote Stripe MCP
-
----
 
 ## 📦 Setup Instructions - MCP Demo App (MCP calls only)
 
@@ -82,16 +76,12 @@ Edit `.env` and add your secrets:
 STRIPE_SECRET_KEY="<YOUR SECRET KEY FROM STRIPE GOES HERE>"
 ```
 
----
-
 ### 3. Install a model in Docker Desktop
 
 - Open **Docker Desktop**
 - Go to **Models**
 - Install a lightweight model (e.g. Gemma3)
 - Update the model name in `.env` if you go for a different model
-
----
 
 ### 4. Build and run the app
 
@@ -105,8 +95,6 @@ Open your browser at:
 http://localhost:8501
 ```
 
----
-
 ## 🧪 What You’ll See
 
 - Calls to **local MCP tools** (DuckDuckGo) if you prompt for "search X on the web"
@@ -114,12 +102,9 @@ http://localhost:8501
 - Unified access via Docker MCP Gateway
 - A full-stack AI web interface - the perfect template to develop your own LLM apps.
 
----
-
 ## 📚 Resources
 
 - ⭐ Docker MCP Catalog: https://dockr.ly/4pzVKGd
----
 
 ## 💡 Notes
 
@@ -128,17 +113,14 @@ http://localhost:8501
 - Docker MCP Gateway still requires API Key authentication - may change in the future as Docker MCP is currently still in Beta.
 - Applications only talk to **Docker MCP**, not individual MCP servers.
 
----
-
 ## ❤️ Contributing
 
 Feel free to fork, extend, and reuse this project.
 
----
-
 ## 🧑‍💻 License
 
 MIT License
+
 
 
 
