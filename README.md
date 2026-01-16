@@ -39,7 +39,27 @@ This app serves as a **starter template** for building professional AI assistant
 
 ---
 
-## 📦 Setup Instructions
+## 📦 Setup Instructions - MCP Demo App (MCP calls only)
+
+### 1. Clone the repository
+
+```
+git clone https://github.com/MariyaSha/Docker_MCPGUIApp.git
+cd Docker_MCPGUIApp/mcp_demo_app
+```
+
+### 2. Edit catalog.yaml and add your Stripe Secret Key:
+```
+Authorization: "Bearer <Stripe secret key goes here>"
+```
+
+### 3. Build and Run Application
+
+```
+docker compose up --build
+```
+
+## 📦 Setup Instructions - Complete App (Full Stack LLM Web Assistent)
 
 ### 1. Clone the repository
 
@@ -119,5 +139,6 @@ Feel free to fork, extend, and reuse this project.
 ## 🧑‍💻 License
 
 MIT License
+
 
 
