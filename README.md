@@ -10,8 +10,9 @@ To setup and run this application step by step, please watch my YouTube tutorial
 
 <a href="https://youtu.be/DO3wPYJKpxk" target="_blank"><img width="600" alt="Docker MCP Catalog thumbnail" src="https://github.com/user-attachments/assets/a419f9d1-0fc9-473a-8efe-b78dfdb462a6" /></a>
 
-It demonstrates how to:
-- embed MCP tools into your own **Python application**,
+This video demonstrates how to:
+- connect AI tools like **Claude** and **Cursor** to real services using Docker MCP.
+- embed MCP tools into your own **Python application**.
 - and build a **production-ready full-stack AI app** that calls MCP tools via a unified Docker gateway.
 
 If you watched the video, this is the codebase used in the workflow.
@@ -118,4 +119,5 @@ Feel free to fork, extend, and reuse this project.
 ## 🧑‍💻 License
 
 MIT License
+
 
